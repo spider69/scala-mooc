@@ -1,7 +1,5 @@
 package homeworks.collections
 
-import homeworks.HomeworksUtils.TaskSyntax
-
 object task_caesar {
 
   /**
@@ -18,7 +16,8 @@ object task_caesar {
    * @return зашифрованное слово
    */
   def encrypt(word: String, offset: Int): String =
-    task"Реализуйте метод `encrypt`"()
+    word.trim.map(addOffset(_, offset))
+
 
   /**
    * @param cipher шифр, который необходимо расшифровать
@@ -26,6 +25,22 @@ object task_caesar {
    * @return расшифрованное слово
    */
   def decrypt(cipher: String, offset: Int): String =
-    task"Реализуйте метод `decrypt`"()
+    cipher.trim.map(addOffset(_, -offset))
+
+  private def addOffset(c: Char, offset: Int): Char = {
+    val LeftBound = 'A'
+    val RightBound = 'Z' + 1
+    val RealOffset = offset % (RightBound - LeftBound)
+
+    val newChar = c + RealOffset
+    val result = if (newChar >= RightBound) {
+      LeftBound + (newChar - RightBound)
+    } else if (newChar < LeftBound) {
+      RightBound - (LeftBound - newChar)
+    } else {
+      newChar
+    }
+    result.toChar
+  }
 
 }
