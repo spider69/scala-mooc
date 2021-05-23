@@ -1,7 +1,5 @@
 package homeworks.collections
 
-import homeworks.HomeworksUtils.TaskSyntax
-
 object task_seq_riddle {
 
   /**
@@ -19,7 +17,12 @@ object task_seq_riddle {
    * */
 
   def nextLine(currentLine: List[Int]): List[Int] =
-    task"Реализуйте функцию генерирующую след последовательность из текущей"()
+    currentLine.foldRight(List[Int]()) { (curElem, acc) =>
+      acc match {
+        case count :: elem :: tail if elem == curElem => (count + 1) :: elem :: tail
+        case elems => 1 :: curElem :: elems
+      }
+    }
 
   /**
    * 2. Реализуйте ленивый список, который генерирует данную последовательность
@@ -29,6 +32,10 @@ object task_seq_riddle {
    *
    */
 
-  val funSeq: LazyList[List[Int]] =
-    task"Реализуйте ленивый список, который генерирует данную последовательность"()
+  lazy val funSeq: LazyList[List[Int]] = {
+    def lazyNextLine(currentLine: List[Int] = List(1)): LazyList[List[Int]] =
+      currentLine #:: lazyNextLine(nextLine(currentLine))
+
+    lazyNextLine()
+  }
 }
