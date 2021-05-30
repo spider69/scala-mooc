@@ -1,7 +1,5 @@
 package homeworks.futures
 
-import homeworks.HomeworksUtils.TaskSyntax
-
 import scala.concurrent.{ExecutionContext, Future}
 
 object task_futures_sequence {
@@ -21,5 +19,27 @@ object task_futures_sequence {
    */
   def fullSequence[A](futures: List[Future[A]])
                      (implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] =
-    task"Реализуйте метод `fullSequence`"()
+  {
+    val futuresWithError = futures.map { future =>
+      future
+        .map(Right(_))
+        .recover {
+          case ex: Throwable =>
+            Left(ex)
+        }
+    }
+
+    Future.sequence(futuresWithError).map { list =>
+      list.foldRight((List.empty[A], List.empty[Throwable])) {
+        case (value, (results, errors)) =>
+          value match {
+            case Left(error) =>
+              (results, error :: errors)
+            case Right(result) =>
+              (result :: results, errors)
+          }
+      }
+    }
+  }
+
 }
