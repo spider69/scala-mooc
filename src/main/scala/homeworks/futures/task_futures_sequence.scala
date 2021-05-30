@@ -18,27 +18,22 @@ object task_futures_sequence {
    * @return асинхронную задачу с кортежом из двух списков
    */
   def fullSequence[A](futures: List[Future[A]])
-                     (implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] =
+    (implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] =
   {
-    val futuresWithError = futures.map { future =>
-      future
-        .map(Right(_))
-        .recover {
-          case ex: Throwable =>
-            Left(ex)
-        }
-    }
-
-    Future.sequence(futuresWithError).map { list =>
-      list.foldRight((List.empty[A], List.empty[Throwable])) {
-        case (value, (results, errors)) =>
-          value match {
-            case Left(error) =>
-              (results, error :: errors)
-            case Right(result) =>
-              (result :: results, errors)
+    futures.foldRight(Future.successful((List.empty[A], List.empty[Throwable]))) {
+      case (future, resultsWithErrors) =>
+        future
+          .flatMap { result =>
+            resultsWithErrors.map {
+              case (results, errors) => (result :: results, errors)
+            }
           }
-      }
+          .recoverWith {
+            case error: Throwable =>
+              resultsWithErrors.map {
+                case (results, errors) => (results, error :: errors)
+              }
+          }
     }
   }
 
